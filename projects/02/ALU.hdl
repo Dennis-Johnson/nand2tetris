@@ -43,4 +43,27 @@ CHIP ALU {
 
     PARTS:
    // Put you code here:
+   
+   // zero the x input if zx is 1:
+   Mux16(a=x, b[0..15]=false, sel=zx, out=xTemp);
+
+   // negate xTemp input if nx is 1:
+   Not16(in=xTemp, out=nxTemp);
+   Mux16(a=xTemp, b=nxTemp, sel=nx, out=xFinal);
+   
+   // zero the y input if zy is 1:
+   Mux16(a=y, b[0..15]=false, sel=zy, out=yTemp);
+
+   // negate yTemp input if ny is 1:
+   Not16(in=yTemp, out=nyTemp);
+   Mux16(a=yTemp, b=nyTemp, sel=nx, out=yFinal);
+
+   // Choose either bitwise-AND or addition based on value of f:
+   And16(a=xFinal, b=yFinal, out=xyAnded);
+   Add16(a=xFinal, b=yFinal, out=xyAdded);
+   Mux16(a=xyAnded, b=xyAdded, sel=f, out=xyResult);
+
+   // Negate xyResult based on value of 'no':
+   Not16(in=xyResult, out=xyNegResult);
+   Mux16(a=xyResult, b=xyNegResult, sel=no, out=out);
 }
