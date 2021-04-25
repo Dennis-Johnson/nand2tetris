@@ -56,7 +56,7 @@ CHIP ALU {
 
    // negate yTemp input if ny is 1:
    Not16(in=yTemp, out=nyTemp);
-   Mux16(a=yTemp, b=nyTemp, sel=nx, out=yFinal);
+   Mux16(a=yTemp, b=nyTemp, sel=ny, out=yFinal);
 
    // Choose either bitwise-AND or addition based on value of f:
    And16(a=xFinal, b=yFinal, out=xyAnded);
@@ -65,5 +65,14 @@ CHIP ALU {
 
    // Negate xyResult based on value of 'no':
    Not16(in=xyResult, out=xyNegResult);
-   Mux16(a=xyResult, b=xyNegResult, sel=no, out=out);
+   Mux16(a=xyResult, b=xyNegResult, sel=no, out[15]=outMsb, out[0..7]=outcopy1, out[8..15]=outcopy2, out=out);
+
+   // Set ng if output is negative
+   And(a=outMsb, b=true, out=ng);
+
+   // Set zr bit high if output is zero
+   Or8Way(in=outcopy1, out=zr0);
+   Or8Way(in=outcopy2, out=zr1);
+   Or(a=zr0, b=zr1, out=zrtemp);
+   Not(in=zrtemp, out=zr);
 }
