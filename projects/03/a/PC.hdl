@@ -17,4 +17,18 @@ CHIP PC {
 
     PARTS:
     // Put your code here:
+
+    // registerLoad = reset OR load OR inc bit
+    Or(a=reset, b=load, out=ltemp);
+    Or(a=ltemp, b=inc,  out=registerLoad);
+  
+    // Here I implement the if-else chain in reverse
+
+    Inc16(in=outcopy, out=incremented);
+
+    // The a input for the first MUX should actually be 'dont-care', but false is the next best thing
+    Mux16(a=false, b=incremented, sel=inc, out=outinc);
+    Mux16(a=outinc, b=in, sel=load, out=outload);
+    Mux16(a=outload, b=false, sel=reset, out=registerInput);  
+    Register(in=registerInput, load=registerLoad, out=out, out=outcopy);
 }
