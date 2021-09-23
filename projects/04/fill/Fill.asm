@@ -11,4 +11,54 @@
 // "white" in every pixel;
 // the screen should remain fully clear as long as no key is pressed.
 
-// Put your code here.
+    
+
+    @SCREEN
+    D = A               // D = RAM[16384], the base address of the screen.
+
+    @screenAddress
+    M = D               // screenAddress = SCREEN.
+
+    @i
+    M = 0               // i = 0. Counter for fill loop.
+
+    @64
+    D = A               // D = 64
+
+    @n
+    M = D               // n = 64, number of rows to fill.
+
+(LOOP)
+    @i
+    D = M                // D = i
+
+    @n
+    D = D - M            // D = i - n
+
+    @END
+    D; JGT               // Jump to END if (i - n) > 0
+
+    @screenAddress
+    A = M                // A = screenAddress
+    M = -1               // fill with black at RAM[A]
+
+    @screenAddress
+    D = M                // D = screenAddress
+    @32
+    D = D + A           
+    @screenAddress
+    M = D                // screenAddress = screenAddress + 32
+
+    @i
+    M = M + 1            // i += 1
+
+    @LOOP
+    0; JMP
+
+(END)
+    @END
+    0; JMP              // END, infinite loop.
+
+
+
+
