@@ -22,8 +22,8 @@
     @i
     M = 0               // i = 0. Counter for fill loop.
 
-    @64
-    D = A               // D = 64
+    @8192
+    D = A               // D = 8K, the whole screen.
 
     @n
     M = D               // n = 64, number of rows to fill.
@@ -43,11 +43,8 @@
     M = -1               // fill with black at RAM[A]
 
     @screenAddress
-    D = M                // D = screenAddress
-    @32
-    D = D + A           
-    @screenAddress
-    M = D                // screenAddress = screenAddress + 32
+    D = M                // D = screenAddress      
+    M = D + 1            // screenAddress += 1
 
     @i
     M = M + 1            // i += 1
