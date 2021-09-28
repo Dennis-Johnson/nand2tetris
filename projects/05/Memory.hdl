@@ -27,5 +27,14 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // Decide whether to load to RAM or SCREEN
+    DMux(in=load, sel=address[14], a=loadRam, b=loadScreen);
+
+    // The three components
+    RAM16K(in=in, load=loadRam,   address=address[0..13], out=outRam);
+    Screen(in=in, load=loadScreen, address=address[0..12], out=outScreen);
+    Keyboard(out=outKeyboard);
+
+    // Decide which output according to the two MSBs of address
+    Mux4Way16(a=outRam, b=outRam, c=outScreen, d=outKeyboard, sel=address[13..14], out=out);
 }
