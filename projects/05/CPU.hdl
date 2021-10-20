@@ -39,5 +39,37 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+
+    Mux16(a=aluOutput, b=instruction, sel=instruction[15], out=opcodeMuxOut)   // Determine opCode from the LSB
+    
+    Or(a=instruction[15], b=instruction[5] ,out=loadARegister)                   // Load A register if first d-bit is set or if an A-instruction.
+    ARegister(in=opcodeMuxOut, load=loadARegister, out=aRegOutput, out=addressM) // Set A reg to 16 bit value if it's an A instruction.
+
+    DRegister(in=aluOutput, load=instruction[4], out=x)                        // D-register's output is ALU's x input. Middle d-bit determines load bit.
+
+    Mux16(a=aRegOutput, b=inM, sel=instruction[12], out=y)                     // The a-bit decides whether to load A register's content or inM.
+
+    ALU(x=x ,y=y ,zx=instruction[11] ,nx=instruction[10] ,zy=instruction[9] ,ny=instruction[8] ,f=instruction[7], no=instruction[6] ,out=outM, out=aluOutput, zr=zr ,ng=ng)
+
+    And(a=instruction[3], b=instruction[15], out=writeM)                                     // writeM = instruction[3] && instruction[15], aka the last d-bit && opCode.
+    
+    And(a=zr, b=1, out=jeq)                                                     // JEQ = (zr == 1)
+
+    Not(in=jeq, out=jne)                                                        // JNE = !JEQ
+
+    And(a=ng, b=1, out=jlt)                                                     // JLT = (ng == 1)
+    
+    Not(in=ng, out=notNeg)
+    And(a=notNeg, b=jne, out=jgt)                                               // JGT = (ng == 0 && JNE)
+
+    Or(a=jgt, b=jeq, out=jge)                                                   // JGE = (JGT || JEQ)
+    Or(a=jlt, b=jeq, out=jle)                                                   // JLE = (JLT || JEQ)
+    
+    Mux8Way16(a=1 ,b=jle ,c=jne ,d=jlt ,e=jge ,f=jeq ,g=jgt ,h=0 ,sel=instruction[3..5], out=loadIntermediate)
+
+    Not(in=loadIntermediate, out=inc)                                           // inc = !load
+    
+    And(a=load, b=instruction[15], out=load)                                    // Confirm it's a C instruction.
+
+    PC(in=aRegOutput,load=load,inc=inc ,reset=reset ,out=pc)
 }
