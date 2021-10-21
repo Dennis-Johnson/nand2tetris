@@ -40,34 +40,35 @@ CHIP CPU {
 
     PARTS:
 
-    Not(in=instruction[15], out=notAbit);
-    Mux16(a=instruction, b=aluOutput, sel=instruction[15], out=opcodeMuxOut);   // Determine opCode from the LSB
+    Not(in=instruction[15], out=invertOpCode);                                  // Inverse of bit that decides the opCode.
+    Mux16(a=instruction, b=aluOutput, sel=instruction[15], out=opcodeMuxOut);   // Determine input to A-Register based on opCode.
     
-    And(a=instruction[5], b=instruction[15], out=writeAReg);                // Write to A reg is d-bit is set and is a C instr.
-    Or(a=notAbit, b=writeAReg ,out=loadARegister);                         // Load A register if first d-bit is set or if an A-instruction.
-    ARegister(in=opcodeMuxOut, load=loadARegister, out=aRegOutput, out[0..14]=addressM); // Set A reg to 16 bit value if it's an A instruction.
+    And(a=instruction[5], b=instruction[15], out=writeAReg);                    // Write to A-reg if it's d-bit is set and this is a C instr.
+    Or(a=invertOpCode, b=writeAReg ,out=loadARegister);                         // Or Write to A-reg if this is an A-instruction.
+    ARegister(in=opcodeMuxOut, load=loadARegister, out=aRegOutput, out[0..14]=addressM);    // Write the output from the mux to A-reg.
 
-    And(a=instruction[4], b=instruction[15], out=loadDReg);                     // Load D register when middle d-bit is high and it's a C instruction.
-    DRegister(in=aluOutput, load=loadDReg, out=x);                              // D-register's output is ALU's x input. Middle d-bit determines load bit.
+    And(a=instruction[4], b=instruction[15], out=loadDReg);                     // Load D register when middle d-bit is set and it's a C instruction.
+    DRegister(in=aluOutput, load=loadDReg, out=x);                              // D-register's output is the ALU's x input.
 
     Mux16(a=aRegOutput, b=inM, sel=instruction[12], out=y);                     // The a-bit decides whether to load A register's content or inM.
 
+    // The six c-bits from the C-instruction are the control bits for the ALU.
     ALU(x=x, y=y, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=outM, out=aluOutput, zr=zr ,ng=ng);
 
-    And(a=instruction[3], b=instruction[15], out=writeM);                        // writeM = instruction[3] && instruction[15], aka the last d-bit && opCode.
+    And(a=instruction[3], b=instruction[15], out=writeM);                        // write to RAM[A] if the last d-bit is set and it's a C-instr.
     
+    // Check which jump condition out of the 8 possible based on zr and ng flags from ALU.
     And(a=zr, b=true, out=jeq);                                                  // JEQ = (zr == 1)
-
     Not(in=jeq, out=jne);                                                        // JNE = !JEQ
-
     And(a=ng, b=true, out=jlt);                                                  // JLT = (ng == 1)
-    
+
     Not(in=ng, out=notNeg);
     And(a=notNeg, b=jne, out=jgt);                                               // JGT = (ng == 0 && JNE)
 
     Or(a=jgt, b=jeq, out=jge);                                                   // JGE = (JGT || JEQ)
     Or(a=jlt, b=jeq, out=jle);                                                   // JLE = (JLT || JEQ)
     
+
     Mux8Way16(
         a=false,
         b[1..15]=false, b[0]=jgt,
@@ -77,10 +78,11 @@ CHIP CPU {
         f[1..15]=false, f[0]=jne,
         g[1..15]=false, g[0]=jle,
         h[1..15]=false, h[0]=true,
-        sel=instruction[0..2], out[0]=loadIntermediate);
+        sel=instruction[0..2], out[0]=loadIntermediate);                         // Use j-bits to select jump condition. PC = A if true, else PC++
 
-    Not(in=loadIntermediate, out=inc);                                           // inc = !load
     And(a=loadIntermediate, b=instruction[15], out=load);                        // Confirm it's a C instruction.
+    Not(in=load, out=inc);                                                       // inc = !load
+
 
     PC(in=aRegOutput,load=load, inc=inc ,reset=reset ,out[0..14]=pc);
 }
