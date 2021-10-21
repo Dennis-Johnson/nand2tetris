@@ -40,12 +40,15 @@ CHIP CPU {
 
     PARTS:
 
-    Mux16(a=aluOutput, b=instruction, sel=instruction[15], out=opcodeMuxOut);   // Determine opCode from the LSB
+    Not(in=instruction[15], out=notAbit);
+    Mux16(a=instruction, b=aluOutput, sel=instruction[15], out=opcodeMuxOut);   // Determine opCode from the LSB
     
-    Or(a=instruction[15], b=instruction[5] ,out=loadARegister);                   // Load A register if first d-bit is set or if an A-instruction.
-    ARegister(in=opcodeMuxOut, load=loadARegister, out=aRegOutput, out[1..15]=addressM); // Set A reg to 16 bit value if it's an A instruction.
+    And(a=instruction[5], b=instruction[15], out=writeAReg);                // Write to A reg is d-bit is set and is a C instr.
+    Or(a=notAbit, b=writeAReg ,out=loadARegister);                         // Load A register if first d-bit is set or if an A-instruction.
+    ARegister(in=opcodeMuxOut, load=loadARegister, out=aRegOutput, out[0..14]=addressM); // Set A reg to 16 bit value if it's an A instruction.
 
-    DRegister(in=aluOutput, load=instruction[4], out=x);                        // D-register's output is ALU's x input. Middle d-bit determines load bit.
+    And(a=instruction[4], b=instruction[15], out=loadDReg);                     // Load D register when middle d-bit is high and it's a C instruction.
+    DRegister(in=aluOutput, load=loadDReg, out=x);                        // D-register's output is ALU's x input. Middle d-bit determines load bit.
 
     Mux16(a=aRegOutput, b=inM, sel=instruction[12], out=y);                     // The a-bit decides whether to load A register's content or inM.
 
@@ -66,18 +69,18 @@ CHIP CPU {
     Or(a=jlt, b=jeq, out=jle);                                                   // JLE = (JLT || JEQ)
     
     Mux8Way16(
-        a=false, a[15]=true,
-        b=false, b[15]=jle,
-        c=false, c[15]=jne,
-        d=false, d[15]=jlt,
-        e=false, e[15]=jge,
-        f=false, f[15]=jeq,
-        g=false, g[15]=jgt,
+        a=false, a[0]=true,
+        b=false, b[0]=jle,
+        c=false, c[0]=jne,
+        d=false, d[0]=jlt,
+        e=false, e[0]=jge,
+        f=false, f[0]=jeq,
+        g=false, g[0]=jgt,
         h=false,
-        sel=instruction[3..5], out[15]=loadIntermediate);
+        sel=instruction[3..5], out[0]=loadIntermediate);
 
     Not(in=loadIntermediate, out=inc);                                           // inc = !load
     And(a=loadIntermediate, b=instruction[15], out=load);                        // Confirm it's a C instruction.
 
-    PC(in=aRegOutput,load=load, inc=inc ,reset=reset ,out[1..15]=pc);
+    PC(in=aRegOutput,load=load, inc=inc ,reset=reset ,out[0..14]=pc);
 }
