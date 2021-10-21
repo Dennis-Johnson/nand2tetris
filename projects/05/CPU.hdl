@@ -48,7 +48,7 @@ CHIP CPU {
     ARegister(in=opcodeMuxOut, load=loadARegister, out=aRegOutput, out[0..14]=addressM); // Set A reg to 16 bit value if it's an A instruction.
 
     And(a=instruction[4], b=instruction[15], out=loadDReg);                     // Load D register when middle d-bit is high and it's a C instruction.
-    DRegister(in=aluOutput, load=loadDReg, out=x);                        // D-register's output is ALU's x input. Middle d-bit determines load bit.
+    DRegister(in=aluOutput, load=loadDReg, out=x);                              // D-register's output is ALU's x input. Middle d-bit determines load bit.
 
     Mux16(a=aRegOutput, b=inM, sel=instruction[12], out=y);                     // The a-bit decides whether to load A register's content or inM.
 
@@ -69,15 +69,15 @@ CHIP CPU {
     Or(a=jlt, b=jeq, out=jle);                                                   // JLE = (JLT || JEQ)
     
     Mux8Way16(
-        a=false, a[0]=true,
-        b=false, b[0]=jle,
-        c=false, c[0]=jne,
-        d=false, d[0]=jlt,
-        e=false, e[0]=jge,
-        f=false, f[0]=jeq,
-        g=false, g[0]=jgt,
-        h=false,
-        sel=instruction[3..5], out[0]=loadIntermediate);
+        a=false,
+        b[1..15]=false, b[0]=jgt,
+        c[1..15]=false, c[0]=jeq,
+        d[1..15]=false, d[0]=jge,
+        e[1..15]=false, e[0]=jlt,
+        f[1..15]=false, f[0]=jne,
+        g[1..15]=false, g[0]=jle,
+        h[1..15]=false, h[0]=true,
+        sel=instruction[0..2], out[0]=loadIntermediate);
 
     Not(in=loadIntermediate, out=inc);                                           // inc = !load
     And(a=loadIntermediate, b=instruction[15], out=load);                        // Confirm it's a C instruction.
