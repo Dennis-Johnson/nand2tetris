@@ -1,8 +1,9 @@
 '''
 Parser.py
 
-Implements a basic parser for the Hack Assembly language.
+Implements a parser for the Hack Assembly language.
 '''
+
 from typing import Union
 from Instruction import AInstruction, CInstruction
 
