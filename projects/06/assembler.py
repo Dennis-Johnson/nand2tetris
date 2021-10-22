@@ -15,14 +15,12 @@ def assembler(filePath):
     parser = Parser(filePath)
     translatedLines = []
 
-    '''
     while parser.hasMoreCommands():
         cmd = parser.getNextCommand()
         print(cmd.__str__() + " --> " + cmd.getBinaryTranslation())
         translatedLines.append(cmd.getBinaryTranslation())
-    '''
 
-    # Write lines to the .hack file"
+    # Write translated lines to the .hack file"
     with open(fileName + ".hack", "w") as binFile:
         for line in translatedLines:
             print(line, file = binFile)

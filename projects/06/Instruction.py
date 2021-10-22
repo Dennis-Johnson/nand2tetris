@@ -23,12 +23,20 @@ class AInstruction:
 # Compute Instruction
 class CInstruction:
     def __init__(self, line) -> None:
-        destSplit = line.split("=")
-        self.dest = destSplit[0].strip() if len(destSplit) > 1 else "null"
-        
-        jumpSplit = destSplit[1].split(";")
-        self.jump = jumpSplit[1].strip() if len(jumpSplit) > 1 else "null"
-        self.comp = jumpSplit[0]
+        # Only comp and jump field, no dest field.
+        if line.find('=') == -1:
+            self.dest = "null"
+            jumpSplit = line.split(';')
+            self.comp = jumpSplit[0].strip()
+            self.jump = jumpSplit[1].strip()
+
+        # Only comp and dest field, no jump field.
+        else:
+            self.jump = "null"
+            destSplit = line.split('=')
+            self.dest = destSplit[0].strip()
+            self.comp = destSplit[1].strip()
+
     
     def __str__(self) -> str:
         return "[C]: Dest (" + self.dest + "), Comp (" + self.comp +"), Jump (" + self.jump + ")"

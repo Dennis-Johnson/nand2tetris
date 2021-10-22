@@ -4,9 +4,6 @@ SymbolTable.py
 Defines a class to handle symbols encountered during the Hack assembly translation.
 '''
 
-from typing import List
-
-
 class SymbolTable:
     def __init__(self) -> None:
         # Add some predefined symbols to the symbol table.
@@ -26,22 +23,29 @@ class SymbolTable:
             "R7": 7,
             "R8": 8,
             "R9": 9,
-            "R10": 11,
-            "R11": 12,
-            "R12": 13,
-            "R13": 14,
-            "R14": 15,
-            "R15": 16,
+            "R10": 10,
+            "R11": 11,
+            "R12": 12,
+            "R13": 13,
+            "R14": 14,
+            "R15": 15,
             "SCREEN": 16384,
             "KBD": 24576
         }
 
         # The next RAM address to which a symbol can be assigned
-        self.nextAvailableAddress = 17
+        self.nextAvailableAddress = 16
     
-    # Adds a (symbol, address) pair to the symbol table.
+    # Adds a (symbol, address) pair to the symbol table. Used for labels.
     def addSymbol(self, symbol:str, address: int) -> None:
+        assert self.nextAvailableAddress < 16384, "Symbol Table is full" 
         self.symbols[symbol] = address
+
+    # Adds a (symbol, address) pair to the symbol table. Used for variables.
+    def addVariable(self, symbol:str) -> None:
+        assert self.nextAvailableAddress < 16384, "Symbol Table is full" 
+        self.symbols[symbol] = self.nextAvailableAddress
+        self.nextAvailableAddress += 1
 
     def contains(self, symbol:str) -> bool:
         return True if symbol in self.symbols else False
