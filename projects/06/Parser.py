@@ -36,6 +36,3 @@ class Parser:
         # Returns -1 if no comments are found.
         commentStartIndex = self.inputLines[lineNumber].find("//")
         return self.inputLines[lineNumber] if commentStartIndex == -1 else self.inputLines[lineNumber][:commentStartIndex]
-
-    def __del__(self) -> None:
-        pass
