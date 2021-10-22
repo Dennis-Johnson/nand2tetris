@@ -34,4 +34,4 @@ class CInstruction:
         return "[C]: Dest (" + self.dest + "), Comp (" + self.comp +"), Jump (" + self.jump + ")"
 
     def getBinaryTranslation(self) -> str:
-        return "111" + HackSpec.translateDestField(self.dest) + HackSpec.translateCompField(self.comp) + HackSpec.translateJumpField(self.jump)
+        return "111" + HackSpec.translateCompField(self.comp) + HackSpec.translateDestField(self.dest) + HackSpec.translateJumpField(self.jump)
